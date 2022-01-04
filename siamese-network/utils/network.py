@@ -1,4 +1,5 @@
 import torch
+from torch import Tensor
 import torch.nn as nn
 
 class SiameseNetwork(nn.Module):
@@ -9,7 +10,7 @@ class SiameseNetwork(nn.Module):
     - https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf
     """
     def __init__(self) -> None:
-        super(SiameseNetwork, self).__init__()
+        super().__init__()
 
         self.conv = nn.Sequential(
             # [m, 1, 105, 105] -> [m, 64, 96, 96]
@@ -48,10 +49,10 @@ class SiameseNetwork(nn.Module):
         # [m, 9216] -> [m, 1]
         self.fc2 = nn.Sequential(
             nn.Linear(in_features=4096, out_features=1),
-            nn.Sigmoid()
+            # nn.Sigmoid()
         )
 
-    def forward_one_image(self, x):
+    def forward_one_image(self, x: Tensor) -> Tensor:
         # [m, 1, 105, 105] -> [m, 256, 6, 6]
         x = self.conv(x)
         # [m, 256, 6, 6] -> [m, 9216]
@@ -61,7 +62,7 @@ class SiameseNetwork(nn.Module):
 
         return x
 
-    def forward(self, x1, x2):
+    def forward(self, x1: Tensor, x2: Tensor) -> Tensor:
         x1 = self.forward_one_image(x1)
         x2 = self.forward_one_image(x2)
         

@@ -1,10 +1,11 @@
+import torch
 from torchvision.datasets import Omniglot
 from torch.utils.data import Dataset
 
 import numpy as np
 import pandas as pd
 
-from typing import Any, Optional, Callable, Tuple
+from typing import Optional, Callable, Tuple, Any
 
 np.random.seed(42)
 
@@ -20,35 +21,52 @@ class OmniglotPairs(Dataset):
 
     def __init__(
         self,
-         n_pairs: int = 1_000_000, 
-         transform: Optional[Callable] = None
+        root: str = 'data/',
+        n_pairs: int = 1_000_000, 
+        train: bool = True,
+        transform: Optional[Callable] = None
     ) -> None:
 
-        super(OmniglotPairs, self).__init__()
+        super().__init__()
 
-        self.omniglot = Omniglot(
-            root='data/', 
-            background=True,
-            download=True,
-            transform=transform
-        )
+        self.root = root
         self.n_pairs = n_pairs
+        self.train = train
+        self.transform = transform
+
+        self.omniglot = self.omniglot_dataset()
         self.idx_to_class = pd.DataFrame(
             data=[(i, x[1]) for (i, x) in enumerate(self.omniglot)],
             columns=['id', 'character']
         )
         self.n_characters = self.idx_to_class['character'].unique().shape[0]
 
+    def omniglot_dataset(self):
+        return Omniglot(
+            root=self.root, 
+            download=True,
+            background=self.train,
+            transform=self.transform
+        )
+
     def __len__(self) -> int:
         return self.n_pairs
 
     def __repr__(self) -> str:
-        head = f'Dataset: {self.__class__.__name__}'
+        train = 'train' if self.train else 'validation'
+        head = f'Dataset: {self.__class__.__name__} ({train})'
         body = [f'Number of pairs: {self.__len__()}']
-        lines = [head] + [f'{" " * self._repr_indent} {line}' for line in body]
-        lines = '\n'.join(lines)
+        
+        if self.root is not None:
+            body.append(f'Root location: {self.root}')
+        
+        if self.transform:
+            body += [f'Transform: {repr(self.transform)}']
 
-        return lines
+        lines = [head] + [f'{" " * self._repr_indent} {line}' for line in body]
+        representation = '\n'.join(lines)
+
+        return representation
         
     def __getitem__(self, index: int) -> Tuple[Any, Any, Any]:
         # Images from same character

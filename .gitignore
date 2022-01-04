@@ -12,6 +12,9 @@ siamese-network/data
 # Notebooks
 *.ipynb
 
+# PyTorch Lightning
+siamese-network/lightning_logs
+
 # Virtual environment
 siamese-neural-networks-venv
 
