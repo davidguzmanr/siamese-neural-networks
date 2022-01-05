@@ -46,7 +46,7 @@ class SiameseNetwork(nn.Module):
             nn.Sigmoid()
         )
 
-        # [m, 9216] -> [m, 1]
+        # [m, 4096] -> [m, 1]
         self.fc2 = nn.Sequential(
             nn.Linear(in_features=4096, out_features=1),
             # nn.Sigmoid()

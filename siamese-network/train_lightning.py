@@ -17,7 +17,7 @@ class SiameseModel(LightningModule):
     def __init__(
         self,
         lr: float = 1e-3,
-        batch_size: int = 32
+        batch_size: int = 64
     ) -> None:
         super().__init__()
 

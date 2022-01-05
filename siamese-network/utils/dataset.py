@@ -15,7 +15,7 @@ class OmniglotPairs(Dataset):
     
     References
     - https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.Omniglot
-    - https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf
+    - https://github.com/brendenlake/omniglot
     """
     _repr_indent = 4
 
@@ -90,4 +90,3 @@ class OmniglotPairs(Dataset):
             label = 0
 
         return (image_1, image_2, label)
-
