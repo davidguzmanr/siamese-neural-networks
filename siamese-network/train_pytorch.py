@@ -12,8 +12,6 @@ from model.training_utils import train, eval_epoch
 
 import argparse
 
-RUN = '1'
-
 def main():
     # See https://github.com/pytorch/examples/blob/master/mnist/main.py 
     # for a nice example for the ArgumentParser
@@ -59,15 +57,15 @@ def main():
     # I will use the Latin alphabet to train and the Greek alphabet to validate and test
     train_dataset = OmniglotPairs(
         dataset=omniglot_latin,
-        n_pairs=200_000
+        n_pairs=100_000
     )
 
     validation_dataset, test_dataset = random_split(
         dataset=OmniglotPairs(
             dataset=omniglot_greek,
-            n_pairs=20_000
+            n_pairs=10_000
         ),
-        lengths=[10_000, 10_000],
+        lengths=[5_000, 5_000],
         generator=torch.Generator().manual_seed(42)
     )
 
@@ -87,7 +85,7 @@ def main():
         num_workers=4
     )
 
-    writer = SummaryWriter(log_dir='runs/experiment-1')
+    writer = SummaryWriter(log_dir='runs/experiment-2')
 
     # Train the model, open TensorBoard to see the progress
     train(
@@ -98,11 +96,11 @@ def main():
         lr=args.lr, 
         epochs=args.epochs, 
         writer=writer, 
-        checkpoint_path='model/checkpoints/checkpoint-1.pt'
+        checkpoint_path='model/checkpoints/checkpoint-2.pt'
     )
 
     # Save the model
-    torch.save(model, 'model/model-1.pt')
+    torch.save(model, 'model/model-2.pt')
 
     # Add some metrics to evaluate different models and hyperparameters
     _, train_acc = eval_epoch(model, train_loader, device)

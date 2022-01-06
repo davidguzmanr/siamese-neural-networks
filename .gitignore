@@ -9,6 +9,9 @@ __pycache__/
 # Notebooks
 *.ipynb
 
+# PyTorch models
+*.pt
+
 # Omniglot data
 siamese-network/data
 

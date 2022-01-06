@@ -122,7 +122,7 @@ def save_checkpoint(model, optimizer, epoch, loss, path):
              'loss': loss,
              }, path)
 
-def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, patience=5, 
+def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, patience=3, 
           writer=None, checkpoint_path=None):
     """
     Trains the whole model.
@@ -148,7 +148,7 @@ def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, pa
     epochs: int, default=20.
         Number of epochs.
     
-    patience: int, default=5.
+    patience: int, default=3.
         Number of epochs with no improvement after which training 
         will be stopped for early stopping.
     
