@@ -1,9 +1,7 @@
-import torch
 from torchvision.datasets import Omniglot
 from torch.utils.data import Dataset
 
 import numpy as np
-import pandas as pd
 
 from PIL import Image
 
@@ -17,8 +15,20 @@ np.random.seed(42)
 class OmniglotAlphabet(Dataset):
     """
     Dataset of an specific alphabet (e.g., Latin, Greek, etc) from the Omniglot dataset.
-    
+
+    Parameters
+    ----------
+    alphabet: str.
+        One of the alphabet from the Omniglot dataset.
+
+    root: str, default='data/'.
+        Directory where the dataset will be downloaded.
+
+    transform: (callable, optional), defaul=None.
+        A function/transform.
+
     References
+    ----------
     - https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.Omniglot
     - https://github.com/brendenlake/omniglot
     """

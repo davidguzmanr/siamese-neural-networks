@@ -6,14 +6,20 @@ __pycache__/
 # C extensions
 *.so
 
-# Omniglot data
-siamese-network/data
-
 # Notebooks
 *.ipynb
 
+# Omniglot data
+siamese-network/data
+
 # PyTorch Lightning
 siamese-network/lightning_logs
+
+# Tensorboard logs
+siamese-network/runs
+
+# Checkpoints
+siamese-network/model/checkpoints
 
 # Virtual environment
 siamese-neural-networks-venv

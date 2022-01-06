@@ -1,5 +1,3 @@
-import torch
-from torchvision.datasets import Omniglot
 from torch.utils.data import Dataset
 
 import numpy as np
@@ -12,53 +10,50 @@ np.random.seed(42)
 class OmniglotPairs(Dataset):
     """
     Pairs of images to train a siamese neural network from the Omniglot dataset.
+
+    Parameters
+    ----------
+    dataset: torch dataset.
+        PyTorch dataset to get pairs of images.
+
+    n_pairs: int, default=100,000.
+        Number of pairs to generate.
+
+    transform: (callable, optional), defaul=None.
+        A function/transform.
     
     References
-    - https://pytorch.org/vision/stable/datasets.html#torchvision.datasets.Omniglot
+    ----------
     - https://github.com/brendenlake/omniglot
+    - https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf
     """
     _repr_indent = 4
 
     def __init__(
         self,
-        root: str = 'data/',
-        n_pairs: int = 1_000_000, 
-        train: bool = True,
+        dataset: Dataset,
+        n_pairs: int = 100_000, 
         transform: Optional[Callable] = None
     ) -> None:
 
         super().__init__()
 
-        self.root = root
+        self.dataset = dataset
         self.n_pairs = n_pairs
-        self.train = train
         self.transform = transform
-
-        self.omniglot = self.omniglot_dataset()
+        
         self.idx_to_class = pd.DataFrame(
-            data=[(i, x[1]) for (i, x) in enumerate(self.omniglot)],
+            data=[(i, x[1]) for (i, x) in enumerate(self.dataset)],
             columns=['id', 'character']
         )
         self.n_characters = self.idx_to_class['character'].unique().shape[0]
-
-    def omniglot_dataset(self):
-        return Omniglot(
-            root=self.root, 
-            download=True,
-            background=self.train,
-            transform=self.transform
-        )
 
     def __len__(self) -> int:
         return self.n_pairs
 
     def __repr__(self) -> str:
-        train = 'train' if self.train else 'validation'
-        head = f'Dataset: {self.__class__.__name__} ({train})'
+        head = f'Dataset: {self.__class__.__name__}'
         body = [f'Number of pairs: {self.__len__()}']
-        
-        if self.root is not None:
-            body.append(f'Root location: {self.root}')
         
         if self.transform:
             body += [f'Transform: {repr(self.transform)}']
@@ -77,7 +72,7 @@ class OmniglotPairs(Dataset):
             # Get two different ids from the same character
             idx = self.idx_to_class[self.idx_to_class['character'] == character]
             id_1, id_2 = idx.sample(n=2, replace=False)['id'].values
-            image_1, image_2 = self.omniglot.__getitem__(id_1)[0], self.omniglot.__getitem__(id_2)[0]
+            image_1, image_2 = self.dataset.__getitem__(id_1)[0], self.dataset.__getitem__(id_2)[0]
             label = 1
         
         # Images from different characters
@@ -86,7 +81,7 @@ class OmniglotPairs(Dataset):
             while id_1 == id_2:
                 id_1, id_2 = self.idx_to_class.sample(n=2, replace=False)['id'].values
             
-            image_1, image_2 = self.omniglot.__getitem__(id_1)[0], self.omniglot.__getitem__(id_2)[0]
+            image_1, image_2 = self.dataset.__getitem__(id_1)[0], self.dataset.__getitem__(id_2)[0]
             label = 0
 
         return (image_1, image_2, label)

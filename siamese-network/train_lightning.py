@@ -8,8 +8,8 @@ from torchvision import transforms
 from pytorch_lightning import LightningModule
 from pytorch_lightning.utilities.cli import LightningCLI
 
-from utils.dataset import OmniglotPairs
-from utils.network import SiameseNetwork
+from dataset.dataset_pairs import OmniglotPairs
+from model.network import SiameseNetwork
 
 from typing import Any
 
@@ -67,9 +67,9 @@ class SiameseModel(LightningModule):
             transforms.Normalize((0.9221), (0.2623))
         ])
 
-    def prepare_data(self) -> None:
+    # def prepare_data(self) -> None:
         # Download the data, in case it hasn't been downloaded
-        OmniglotPairs()
+        # OmniglotPairs()
 
     def train_dataloader(self):
         train_dataset = OmniglotPairs(
