@@ -13,7 +13,8 @@ __pycache__/
 *.pt
 
 # Omniglot data
-siamese-network/data
+siamese/data
+siamese/model/data
 
 # PyTorch Lightning
 siamese-network/lightning_logs
