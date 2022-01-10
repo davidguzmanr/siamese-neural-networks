@@ -64,6 +64,9 @@ class OmniglotPairs(Dataset):
         return representation
         
     def __getitem__(self, index: int) -> Tuple[Any, Any, Any]:
+        # Get the same pairs given an index, otherwise they change every epoch
+        np.random.seed(index)
+        
         # Images from same character
         if index % 2 == 0:
             # Get a random character_id

@@ -17,13 +17,13 @@ siamese/data
 siamese/model/data
 
 # PyTorch Lightning
-siamese-network/lightning_logs
+siamese/lightning_logs
 
 # Tensorboard logs
-siamese-network/runs
+siamese/runs
 
 # Checkpoints
-siamese-network/model/checkpoints
+siamese/model/checkpoints
 
 # Virtual environment
 siamese-neural-networks-venv

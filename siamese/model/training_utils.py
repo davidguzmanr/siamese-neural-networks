@@ -12,7 +12,7 @@ np.random.seed(42)
 torch.manual_seed(42)
 torch.backends.cudnn.deterministic = True
 
-def train_epoch(model, train_loader, optimizer, device):
+def train_epoch(model, train_loader, optimizer, device, epoch):
     """
     Trains a single epoch.
 
@@ -29,9 +29,12 @@ def train_epoch(model, train_loader, optimizer, device):
 
     device: torch.device.
         Device where the model will be trained, 'cpu' or 'gpu'.
+
+    epoch: int.
+        Current epoch.
     """
     model.train()
-    for x1, x2, y in tqdm(train_loader, leave=False):
+    for x1, x2, y in tqdm(train_loader, leave=False, desc=f'Epoch {epoch}'):
         # Move to GPU, in case there is one
         x1, x2, y = x1.to(device), x2.to(device), y.unsqueeze(dim=1).float().to(device)
         
@@ -65,7 +68,7 @@ def eval_epoch(model, data_loader, device):
     with torch.no_grad():
         losses, accs = [], []
 
-        for x1, x2, y in tqdm(data_loader, leave=False):
+        for x1, x2, y in tqdm(data_loader, leave=False, desc='Eval'):
             # Move to GPU, in case there is one
             x1, x2, y = x1.to(device), x2.to(device), y.unsqueeze(dim=1).float().to(device)
 
@@ -165,11 +168,11 @@ def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, pa
     """
     last_loss = np.inf
     early_stop = 0
-    optimizer = optim.Adam(model.parameters(), lr=lr)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.0)
 
-    for epoch in trange(epochs):
+    for epoch in trange(epochs, desc='Train'):
         # Train a single epoch
-        train_epoch(model, train_loader, optimizer, device)
+        train_epoch(model, train_loader, optimizer, device, epoch)
 
         # Evaluate in training
         train_loss, train_acc = eval_epoch(model, train_loader, device)

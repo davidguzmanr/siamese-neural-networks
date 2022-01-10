@@ -1,5 +1,6 @@
 import torch
 from torchvision import transforms
+from torchvision.datasets import Omniglot
 from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary
@@ -13,9 +14,6 @@ from model.training_utils import train, eval_epoch
 import argparse
 
 def main():
-    # See https://github.com/pytorch/examples/blob/master/mnist/main.py 
-    # for a nice example for the ArgumentParser
-
     # Training settings
     parser = argparse.ArgumentParser(description='QuickDraw training')
     parser.add_argument('--batch-size', type=int, default=32, metavar='N',
@@ -44,45 +42,37 @@ def main():
     model.to(device)
     summary(model)
 
-    omniglot_latin = OmniglotAlphabet(
-        alphabet='Latin',
-        transform=transforms.ToTensor()    
+    omniglot = Omniglot(
+        root='data',
+        transform=transforms.ToTensor(),
+        download=True 
     )
 
-    omniglot_greek = OmniglotAlphabet(
-        alphabet='Greek',
-        transform=transforms.ToTensor()    
+    omniglot_pairs = OmniglotPairs(
+        dataset=omniglot,
+        n_pairs=200_000
     )
 
-    # I will use the Latin alphabet to train and the Greek alphabet to validate and test
-    train_dataset = OmniglotPairs(
-        dataset=omniglot_latin,
-        n_pairs=100_000
-    )
-
-    validation_dataset, test_dataset = random_split(
-        dataset=OmniglotPairs(
-            dataset=omniglot_greek,
-            n_pairs=10_000
-        ),
-        lengths=[5_000, 5_000],
+    train_dataset, validation_dataset, test_dataset = random_split(
+        dataset=omniglot_pairs,
+        lengths=[190_000, 5_000, 5_000],
         generator=torch.Generator().manual_seed(42)
     )
 
     train_loader = DataLoader(
         train_dataset, 
         batch_size=args.batch_size, 
-        num_workers=4
+        num_workers=8
     )
     validation_loader = DataLoader(
         validation_dataset, 
         batch_size=args.batch_size, 
-        num_workers=4
+        num_workers=8
     )
     test_loader = DataLoader(
         test_dataset, 
         batch_size=args.batch_size, 
-        num_workers=4
+        num_workers=8
     )
 
     writer = SummaryWriter(log_dir='runs/experiment-2')
@@ -100,7 +90,7 @@ def main():
     )
 
     # Save the model
-    torch.save(model, 'model/model-2.pt')
+    torch.save(model.state_dict(), 'model/model-2.pt')
 
     # Add some metrics to evaluate different models and hyperparameters
     _, train_acc = eval_epoch(model, train_loader, device)

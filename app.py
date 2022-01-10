@@ -9,10 +9,13 @@ import torch
 import torchvision.transforms as transforms
 
 from siamese.model.network import SiameseNetwork
+from siamese.dataset.dataset_alphabet import OmniglotAlphabet
+from siamese.model.app_utils import load_model
 
 import json
 import os
 import gdown
+from tqdm import tqdm
 
 ALPHABETS = [
     'Alphabet_of_the_Magi',
@@ -80,22 +83,14 @@ canvas_result = st_canvas(
     display_toolbar=True
 )
 
-@st.cache
-def load_model():
-    model_path = 'siamese/model/siamese-network.pt'
-    model_url = 'https://drive.google.com/uc?id=1abM973VRugP2xB_QCPgiYkBrYJReefDy'
-    
-    if not os.path.exists(model_path):
-        gdown.download(model_url, model_path, quiet=False)
 
-    model = SiameseNetwork()
-    model.load_state_dict(torch.load(model_path, map_location='cpu'))
-    model.eval()
-
-    return model
 
 model = load_model()
 transform = transforms.ToTensor()
+omniglot_alphabet = OmniglotAlphabet(
+    alphabet=alphabet,
+    root='siamese/data'
+)
 
 if canvas_result.image_data is not None:
     image = canvas_result.image_data
@@ -103,19 +98,22 @@ if canvas_result.image_data is not None:
     # Convert RGBA image to grayscale (PIL doesn't convert as I want)
     image = np.uint8(255 - image[:, :, 3])
     image = Image.fromarray(image, mode='L').resize(size=(105, 105))
-
-    # st.write(image.shape, image.mean())
-    # st.image(Image.fromarray(image, mode='L'))
-    # st.write(transform(Image.fromarray(image, mode='L')))
-
     # Convert to tensor and add batch dimension
     image = transform(image).unsqueeze(dim=0)
 
-    # Compute logits
-    y_lgts = model(image, image)
-    # Compute scores
-    y_prob = torch.sigmoid(y_lgts)
+    y_probs = []
+    for i, (character, _) in tqdm(enumerate(omniglot_alphabet)):
+        if True:
+            # Compute logits
+            y_lgts = model(image, transform(character).unsqueeze(dim=0))
+            # Compute scores
+            y_prob = torch.sigmoid(y_lgts)
+            y_probs.append(y_prob)
 
-    st.write(image.mean())
-    st.write(y_lgts, y_lgts.shape)
-    st.write(y_prob, y_prob.item(), y_prob.shape)
+    top3_prob, top3_index = torch.topk(torch.tensor(y_probs), k=3)
+
+    columns = st.columns([3, 1])
+
+    for col, prob, i in zip(columns, top3_prob, top3_index):
+        st.subheader(f'Probability: {prob.item():.2f}')
+        st.image(omniglot_alphabet.__getitem__(i)[0])
