@@ -5,17 +5,7 @@ from streamlit_drawable_canvas import st_canvas
 from PIL import Image
 import numpy as np
 
-import torch
-import torchvision.transforms as transforms
-
-from siamese.model.network import SiameseNetwork
-from siamese.dataset.dataset_alphabet import OmniglotAlphabet
-from siamese.model.app_utils import load_model
-
-import json
-import os
-import gdown
-from tqdm import tqdm
+from siamese.model.app_utils import load_model, characters_database, get_predictions
 
 ALPHABETS = [
     'Alphabet_of_the_Magi',
@@ -50,25 +40,28 @@ ALPHABETS = [
     'Tifinagh'
 ]
 
+st.subheader('Draw a character and right click to submit')
+
 # Specify canvas parameters in application
 stroke_width = st.sidebar.slider(
     label='Stroke width:',
     min_value=1, 
     max_value=25, 
-    value=3
+    value=15
 )
 drawing_mode = st.sidebar.selectbox(
     label='Drawing tool:', 
-    options=('freedraw', 'line', 'rect', 'circle', 'transform')
+    options=['freedraw', 'line', 'rect', 'circle', 'transform']
 )
 realtime_update = st.sidebar.checkbox(
     label='Update in realtime', 
-    value=True
+    value=False
 )
 
 alphabet = st.sidebar.selectbox(
     label='Alphabet',
-    options=ALPHABETS
+    options=ALPHABETS,
+    index=21 # Latin alphabet
 )
 
 # Create a canvas component
@@ -83,37 +76,19 @@ canvas_result = st_canvas(
     display_toolbar=True
 )
 
+model = load_model('siamese/model/siamese-network.pt')
+characters_alphabet = characters_database(alphabet=alphabet, subset=True)
 
-
-model = load_model()
-transform = transforms.ToTensor()
-omniglot_alphabet = OmniglotAlphabet(
-    alphabet=alphabet,
-    root='siamese/data'
-)
-
-if canvas_result.image_data is not None:
+if canvas_result.image_data.mean() != 0.0:
     image = canvas_result.image_data
 
     # Convert RGBA image to grayscale (PIL doesn't convert as I want)
     image = np.uint8(255 - image[:, :, 3])
     image = Image.fromarray(image, mode='L').resize(size=(105, 105))
-    # Convert to tensor and add batch dimension
-    image = transform(image).unsqueeze(dim=0)
+    
+    topk_prob, topk_index = get_predictions(model, image, characters_alphabet)
 
-    y_probs = []
-    for i, (character, _) in tqdm(enumerate(omniglot_alphabet)):
-        if True:
-            # Compute logits
-            y_lgts = model(image, transform(character).unsqueeze(dim=0))
-            # Compute scores
-            y_prob = torch.sigmoid(y_lgts)
-            y_probs.append(y_prob)
-
-    top3_prob, top3_index = torch.topk(torch.tensor(y_probs), k=3)
-
-    columns = st.columns([3, 1])
-
-    for col, prob, i in zip(columns, top3_prob, top3_index):
-        st.subheader(f'Probability: {prob.item():.2f}')
-        st.image(omniglot_alphabet.__getitem__(i)[0])
+    columns = st.columns(3)
+    for col, prob, i in zip(columns, topk_prob, topk_index):
+        col.markdown(f'Probability: {prob.item():.2f}')
+        col.image(characters_alphabet[i])

@@ -16,8 +16,8 @@ from typing import Any
 class SiameseModel(LightningModule):
     def __init__(
         self,
-        lr: float = 1e-3,
-        batch_size: int = 64
+        lr: float = 1e-2,
+        batch_size: int = 128
     ) -> None:
         super().__init__()
 

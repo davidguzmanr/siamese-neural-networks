@@ -125,8 +125,8 @@ def save_checkpoint(model, optimizer, epoch, loss, path):
              'loss': loss,
              }, path)
 
-def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, patience=3, 
-          writer=None, checkpoint_path=None):
+def train(model, train_loader, validation_loader, device, lr=1e-3, weight_decay=0.0, 
+          epochs=20, patience=3, writer=None, checkpoint_path=None):
     """
     Trains the whole model.
 
@@ -147,6 +147,9 @@ def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, pa
     
     lr: float, default=1e-3.
         Learning rate.
+
+    weight_decay: float, default=0.0.
+        Weight decay for L2 penalty.
     
     epochs: int, default=20.
         Number of epochs.
@@ -166,9 +169,8 @@ def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, pa
     -----
     - See https://clay-atlas.com/us/blog/2021/08/25/pytorch-en-early-stopping/
     """
-    last_loss = np.inf
-    early_stop = 0
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=0.0)
+    last_loss, early_stop = np.inf, 0
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
     for epoch in trange(epochs, desc='Train'):
         # Train a single epoch
@@ -191,7 +193,7 @@ def train(model, train_loader, validation_loader, device, lr=1e-3, epochs=20, pa
         if current_loss > last_loss:
             early_stop += 1
             if early_stop > patience:
-                print('Early stopping!')
+                print('Early stopping!!!')
                 return # Stop training
         else:
             early_stop = 0

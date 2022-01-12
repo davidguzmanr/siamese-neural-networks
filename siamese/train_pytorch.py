@@ -16,16 +16,34 @@ import argparse
 def main():
     # Training settings
     parser = argparse.ArgumentParser(description='QuickDraw training')
-    parser.add_argument('--batch-size', type=int, default=32, metavar='N',
+    
+    parser.add_argument('--batch-size', type=int, default=32,
                         help='Input batch size for training (default: 32)')
-    parser.add_argument('--epochs', type=int, default=50, metavar='N',
+
+    parser.add_argument('--epochs', type=int, default=50,
                         help='Number of epochs to train (default: 20)')
-    parser.add_argument('--lr', type=float, default=1e-3, metavar='LR',
-                        help='Learning rate (default: 1e-3)')
+
+    parser.add_argument('--lr', type=float, default=0.001,
+                        help='Learning rate (default: 0.001)')
+
+    parser.add_argument('--weight_decay', type=float, default=0.0,
+                        help='Weight decay for L2 penalty. (default: 0.0)')
+    
+    parser.add_argument('--patience', type=int, default=3,
+                        help='Early stopping patience (default: 3)')
+    
+    parser.add_argument('--num_workers', type=int, default=4,
+                        help='Number of workers (default: 4)')
+    
+    parser.add_argument('--run', type=int, default=1,
+                        help='Current run, to track experiments (default: 1)')
+    
     parser.add_argument('--cuda', action='store_true', dest='cuda',
                         help='Enables CUDA training.')
+    
     parser.add_argument('--no-cuda', action='store_false', dest='cuda',
                         help='Disables CUDA training.')
+    
     parser.set_defaults(cuda=True)
     args = parser.parse_args()
 
@@ -42,40 +60,48 @@ def main():
     model.to(device)
     summary(model)
 
-    omniglot = Omniglot(
+    omniglot_background = Omniglot(
         root='data',
         transform=transforms.ToTensor(),
+        background=True,
         download=True 
     )
 
-    omniglot_pairs = OmniglotPairs(
-        dataset=omniglot,
+    omniglot_validation = Omniglot(
+        root='data',
+        transform=transforms.ToTensor(),
+        background=False,
+        download=True 
+    )
+
+    train_dataset = OmniglotPairs(
+        dataset=omniglot_background,
         n_pairs=200_000
     )
 
-    train_dataset, validation_dataset, test_dataset = random_split(
-        dataset=omniglot_pairs,
-        lengths=[190_000, 5_000, 5_000],
+    validation_dataset, test_dataset = random_split(
+        dataset=omniglot_validation,
+        lengths=[10_000, 10_000],
         generator=torch.Generator().manual_seed(42)
     )
-
+    
     train_loader = DataLoader(
         train_dataset, 
         batch_size=args.batch_size, 
-        num_workers=8
+        num_workers=args.num_workers
     )
     validation_loader = DataLoader(
         validation_dataset, 
         batch_size=args.batch_size, 
-        num_workers=8
+        num_workers=args.num_workers
     )
     test_loader = DataLoader(
         test_dataset, 
         batch_size=args.batch_size, 
-        num_workers=8
+        num_workers=args.num_workers
     )
 
-    writer = SummaryWriter(log_dir='runs/experiment-2')
+    writer = SummaryWriter(log_dir=f'runs/experiment-{args.run}')
 
     # Train the model, open TensorBoard to see the progress
     train(
@@ -84,13 +110,15 @@ def main():
         validation_loader, 
         device, 
         lr=args.lr, 
+        weight_decay=args.weight_decay,
         epochs=args.epochs, 
+        patience=args.patience,
         writer=writer, 
-        checkpoint_path='model/checkpoints/checkpoint-2.pt'
+        checkpoint_path=f'model/checkpoints/checkpoint-{args.run}.pt'
     )
 
     # Save the model
-    torch.save(model.state_dict(), 'model/model-2.pt')
+    # torch.save(model.state_dict(), f'model/model-{args.run}.pt')
 
     # Add some metrics to evaluate different models and hyperparameters
     _, train_acc = eval_epoch(model, train_loader, device)
@@ -101,7 +129,9 @@ def main():
         hparam_dict={
             'lr': args.lr, 
             'batch_size': args.batch_size, 
-            'epochs': args.epochs
+            'epochs': args.epochs,
+            'weight_decay': args.weight_decay,
+            'patience': args.patience
         },
         metric_dict={
             'train_accuracy': train_acc,
