@@ -5,13 +5,16 @@ from torch.utils.data import DataLoader, random_split
 from torch.utils.tensorboard import SummaryWriter
 from torchinfo import summary
 
-from dataset.dataset_alphabet import OmniglotAlphabet
 from dataset.dataset_pairs import OmniglotPairs
 
 from model.network import SiameseNetwork
 from model.training_utils import train, eval_epoch
 
 import argparse
+
+# Reproducibility
+torch.manual_seed(42)
+torch.backends.cudnn.deterministic = True
 
 def main():
     # Training settings
@@ -79,8 +82,13 @@ def main():
         n_pairs=200_000
     )
 
-    validation_dataset, test_dataset = random_split(
+    evaluation_dataset = OmniglotPairs(
         dataset=omniglot_validation,
+        n_pairs=20_000
+    )
+    
+    validation_dataset, test_dataset = random_split(
+        dataset=evaluation_dataset,
         lengths=[10_000, 10_000],
         generator=torch.Generator().manual_seed(42)
     )
@@ -90,11 +98,13 @@ def main():
         batch_size=args.batch_size, 
         num_workers=args.num_workers
     )
+    
     validation_loader = DataLoader(
         validation_dataset, 
         batch_size=args.batch_size, 
         num_workers=args.num_workers
     )
+
     test_loader = DataLoader(
         test_dataset, 
         batch_size=args.batch_size, 
@@ -116,9 +126,6 @@ def main():
         writer=writer, 
         checkpoint_path=f'model/checkpoints/checkpoint-{args.run}.pt'
     )
-
-    # Save the model
-    # torch.save(model.state_dict(), f'model/model-{args.run}.pt')
 
     # Add some metrics to evaluate different models and hyperparameters
     _, train_acc = eval_epoch(model, train_loader, device)

@@ -40,7 +40,9 @@ ALPHABETS = [
     'Tifinagh'
 ]
 
-st.subheader('Draw a character and right click to submit')
+st.header('Siamese Neural Networks for One-shot Image Recognition')
+
+st.markdown('Draw a character and right click to submit')
 
 # Specify canvas parameters in application
 stroke_width = st.sidebar.slider(
@@ -76,7 +78,7 @@ canvas_result = st_canvas(
     display_toolbar=True
 )
 
-model = load_model('siamese/model/siamese-network.pt')
+model = load_model(model_path='siamese/model/siamese-network.pt')
 characters_alphabet = characters_database(alphabet=alphabet, subset=True)
 
 if canvas_result.image_data.mean() != 0.0:
