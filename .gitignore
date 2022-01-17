@@ -9,6 +9,11 @@ __pycache__/
 # Notebooks
 *.ipynb
 
+# LaTeX files
+figures/siamese-network.aux
+figures/siamese-network.pdf
+figures/siamese-network.synctex.gz
+
 # PyTorch models
 *.pt
 
@@ -16,7 +21,7 @@ __pycache__/
 siamese/data
 siamese/model/data
 
-# PyTorch Lightning
+# PyTorch Lightning logs
 siamese/lightning_logs
 
 # Tensorboard logs
