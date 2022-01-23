@@ -1,9 +1,13 @@
-To train the model with PyTorch Lightning (it is almost 2.5 times faster than native PyTorch for this task)
+The architecture is described in the original [paper](https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf).
+
+<img src='../figures/siamese-network.png'>
+
+To train the model with PyTorch Lightning (it is almost 2.5 times faster than native PyTorch for this task) run
 ```
 python train_lightning.py --config=config.yml
 ```
 
-Or to train in native PyTorch
+Or to train in native PyTorch run
 ```
 python train_pytorch.py \
 --batch-size=128 \
