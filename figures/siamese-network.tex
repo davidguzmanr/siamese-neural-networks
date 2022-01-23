@@ -5,7 +5,7 @@
 \usetikzlibrary{3d} %for including external image 
 
 \def\ConvColor{rgb:yellow,5;red,2.5;white,5}
-\def\ConvReluColor{rgb:green,10;black,5}
+\def\ConvReluColor{rgb:green,5;black,5}
 \def\PoolColor{rgb:red,5;black,0.3}
 \def\DcnvColor{rgb:blue,5;green,2.5;white,5}
 \def\SoftmaxColor{rgb:magenta,5;black,7}
@@ -18,20 +18,23 @@
 %% Draw Layer Blocks
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\node[canvas is zy plane at x=0] (temp) at (-3,0,0) {\includegraphics[width=8cm,height=8cm]{layers/character.png}};
+\node[canvas is zy plane at x=0] (temp) at (-5,0,0) {
+	\centering
+	\includegraphics[width=8cm,height=8cm]{layers/input.png}
+};
 
 % conv1_1,conv1_2,%pool1
 \pic[shift={(0,0,0)}] at (0,0,0) 
 	{RightBandedBox={
 		name=conv1,
-		caption=conv + ReLU,
+		caption=\vspace{1.5cm} \\ conv \\ + \\ ReLU \\ + \\ MaxPool \\,
         xlabel={{"64",""}},
         ylabel=,
-        zlabel=I,
+        zlabel=output $64 \times 48 \times 48$,
         fill=\ConvColor,
         bandfill=\ConvReluColor,%
         height=40,
-        width=2,
+        width=5,
         depth=40
 	}
 };
@@ -41,14 +44,14 @@
 		name=p1,%
         fill=\PoolColor,
         opacity=0.5,
-        height=35,
-        width=1,
-        depth=35
+        height=30,
+        width=2,
+        depth=30
     }
 };
     
 % conv2_1,conv2_2,pool2
-\pic[shift={(2,0,0)}] at (p1-east) 
+\pic[shift={(5,0,0)}] at (p1-east) 
 	{RightBandedBox={
 		name=cr2,
 		caption=conv2,%
